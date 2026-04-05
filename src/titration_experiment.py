@@ -31,7 +31,7 @@ from scipy import stats as scipy_stats
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import GroupKFold, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
@@ -110,10 +110,27 @@ def _cv_auc(
     model_builder,
     n_splits: int = 5,
     random_state: int = 42,
+    groups: np.ndarray | None = None,
 ) -> list[float]:
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    if groups is not None:
+        # GroupKFold: no TCR leaks across folds
+        # Shuffle groups deterministically before splitting
+        unique_groups = np.unique(groups)
+        rng = np.random.default_rng(random_state)
+        rng.shuffle(unique_groups)
+        group_map = {g: i for i, g in enumerate(unique_groups)}
+        shuffled_groups = np.array([group_map[g] for g in groups])
+        gkf = GroupKFold(n_splits=min(n_splits, len(unique_groups)))
+        splitter = gkf.split(X, y, groups=shuffled_groups)
+    else:
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+        splitter = skf.split(X, y)
+
     aucs: list[float] = []
-    for train_idx, test_idx in skf.split(X, y):
+    for train_idx, test_idx in splitter:
+        # Skip folds with single class in test
+        if len(np.unique(y[test_idx])) < 2:
+            continue
         model = model_builder(random_state=random_state)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -166,15 +183,28 @@ def build_candidate_pool(positives: pd.DataFrame) -> pd.DataFrame:
     print("  Extracting biophysical features for candidates (this may take ~1 min)...")
     X_cand = extract_features(candidates, feature_type="biophysical")
 
-    # Compute distance to nearest positive using vectorized numpy
-    print("  Computing distances to nearest positive...")
-    # Euclidean distances: (n_cand, n_pos) — do in chunks to manage memory
+    # Compute distance to nearest positive, EXCLUDING the source TCR's cognate pair.
+    # This prevents the distance from being trivially dominated by the peptide
+    # difference between cognate and swapped peptide on the same TCR.
+    print("  Computing distances to nearest non-cognate positive...")
+    pos_indices = positives.index.values  # original indices in positives df
+    source_tcr_indices = candidates["source_tcr_idx"].values
+
     chunk_size = 5000
     min_dists = np.empty(len(candidates), dtype=np.float32)
     for start in range(0, len(candidates), chunk_size):
         end = min(start + chunk_size, len(candidates))
         diff = X_cand[start:end, np.newaxis, :] - X_pos[np.newaxis, :, :]  # (chunk, n_pos, 104)
         dists = np.sqrt((diff ** 2).sum(axis=2))  # (chunk, n_pos)
+
+        # Mask out same-TCR cognate: set distance to inf for the source positive
+        for i in range(start, end):
+            src_idx = source_tcr_indices[i]
+            # Find which column in X_pos corresponds to the source TCR
+            pos_col = np.where(pos_indices == src_idx)[0]
+            if len(pos_col) > 0:
+                dists[i - start, pos_col[0]] = np.inf
+
         min_dists[start:end] = dists.min(axis=1)
         if start % 20000 == 0 and start > 0:
             print(f"    ... processed {start}/{len(candidates)}")
@@ -300,6 +330,13 @@ def run_titration_experiment(
             combined = pd.concat([positives, neg_df], ignore_index=True)
             y = combined["label"].values
 
+            # Build group labels for GroupKFold: group by CDR3b so same
+            # TCR never appears in both train and test
+            groups = combined["CDR3b"].values
+            # Map CDR3b strings to integer group IDs
+            unique_cdr3 = {s: i for i, s in enumerate(np.unique(groups))}
+            group_ids = np.array([unique_cdr3[s] for s in groups])
+
             # Feature extraction for negatives
             neg_seq = extract_features(neg_df, feature_type="sequence")
             neg_bio = extract_features(neg_df, feature_type="biophysical")
@@ -314,7 +351,8 @@ def run_titration_experiment(
 
             for feat_type, X in feature_matrices.items():
                 for model_name, builder in _MODEL_BUILDERS.items():
-                    fold_aucs = _cv_auc(X, y, builder, n_splits=n_splits, random_state=seed)
+                    fold_aucs = _cv_auc(X, y, builder, n_splits=n_splits,
+                                        random_state=seed, groups=group_ids)
                     for fold_idx, auc in enumerate(fold_aucs):
                         all_rows.append({
                             "difficulty_level": level,
