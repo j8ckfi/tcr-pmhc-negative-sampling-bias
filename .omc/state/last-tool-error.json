@@ -1,0 +1,7 @@
+{
+  "tool_name": "WebFetch",
+  "tool_input_preview": "{\"url\":\"https://www.nature.com/articles/s41592-025-02910-0\",\"prompt\":\"What datasets are evaluated? What is the full list of epitopes in the IMMREP23 benchmark (all 20 peptides with HLA alleles)? How m...",
+  "error": "Request failed with status code 303",
+  "timestamp": "2026-04-05T04:55:30.848Z",
+  "retry_count": 3
+}

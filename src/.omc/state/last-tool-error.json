@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls -la \\\"C:\\\\Users\\\\Jack\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Jack-Documents-Research-TCR-pMHC-Specificity-Prediction\\\\645730c4-bee8-42e7-9106-f7428a84e80e\\\\tasks\\\\\\\" 2>/dev/null\",\"desc...",
+  "error": "Exit code 2\n/usr/bin/bash: eval: line 1: unexpected EOF while looking for matching `\"'",
+  "timestamp": "2026-04-05T04:12:41.064Z",
+  "retry_count": 1
+}

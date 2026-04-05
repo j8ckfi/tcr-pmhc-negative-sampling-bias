@@ -1,0 +1,113 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1775381950209,
+  "projectRoot": "C:\\Users\\Jack\\Documents\\Research\\TCR-pMHC Specificity Prediction",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "requirements.txt"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pip",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": "snake_case",
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 2,
+      "lastAccessed": 1775381950193,
+      "keyFiles": [
+        "IMMREP_2022_TCRSpecificity.zip",
+        "vdjdb-2025-12-29.zip"
+      ]
+    },
+    "results": {
+      "path": "results",
+      "purpose": null,
+      "fileCount": 13,
+      "lastAccessed": 1775381950194,
+      "keyFiles": [
+        "benchmark_results.csv",
+        "benchmark_results.json",
+        "cdr3_diversity.csv",
+        "ceiling_analysis.csv",
+        "immrep23_replication.csv"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 19,
+      "lastAccessed": 1775381950195,
+      "keyFiles": [
+        "ceiling_analysis.py",
+        "data_loader.py",
+        "evaluation.py",
+        "features.py",
+        "figure1_proximity_ratio.py"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src\\titration_experiment.py",
+      "accessCount": 5,
+      "lastAccessed": 1775408667494,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 4,
+      "lastAccessed": 1775381965625,
+      "type": "directory"
+    },
+    {
+      "path": "src\\tchard_comparison.py",
+      "accessCount": 1,
+      "lastAccessed": 1775381966026,
+      "type": "file"
+    },
+    {
+      "path": "src\\itrap_hardness.py",
+      "accessCount": 1,
+      "lastAccessed": 1775405811218,
+      "type": "file"
+    },
+    {
+      "path": "src\\tchard_tripeptide_baseline.py",
+      "accessCount": 1,
+      "lastAccessed": 1775405889517,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
