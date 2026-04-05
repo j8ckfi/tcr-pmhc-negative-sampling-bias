@@ -1,0 +1,9 @@
+feature_type,model,train_neg,test_neg_same,test_neg_cross,auc_same,auc_cross,auc_drop
+biophysical,LR,neg_control,neg_control,swapped,0.8378411535993355,0.2618589039806769,0.5759822496186586
+biophysical,RF,neg_control,neg_control,swapped,0.8824921671511078,0.424229116346184,0.4582630508049238
+biophysical,LR,swapped,swapped,neg_control,0.7044595710865043,0.23423426824204446,0.4702253028444598
+biophysical,RF,swapped,swapped,neg_control,0.8420506707654988,0.5347608621796082,0.3072898085858906
+sequence,LR,neg_control,neg_control,swapped,0.8763617832471405,0.28733439986616055,0.58902738338098
+sequence,RF,neg_control,neg_control,swapped,0.8960552640519421,0.3926241935652519,0.5034310704866902
+sequence,LR,swapped,swapped,neg_control,0.6082656294112111,0.2965894077233777,0.3116762216878334
+sequence,RF,swapped,swapped,neg_control,0.8658249422294717,0.5626042806991054,0.3032206615303663

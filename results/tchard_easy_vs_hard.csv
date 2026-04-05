@@ -1,0 +1,9 @@
+split_type,neg_type,feature_type,model,mean_auc,std_auc
+easy_random_cv,randomized,sequence,LR,0.5281217238446266,0.007281366507061617
+easy_random_cv,randomized,sequence,RF,0.6052068601014428,0.005825715869107928
+easy_random_cv,experimental,sequence,LR,0.97622518040571,0.002188014647429625
+easy_random_cv,experimental,sequence,RF,0.9679538325227469,0.0026361665590197546
+hard_pep_cdr3b,only-sampled-negs,sequence,LR,0.4945719309936953,0.009400802193179078
+hard_pep_cdr3b,only-sampled-negs,sequence,RF,0.4931944348868261,0.01345943787576465
+hard_pep_cdr3b,only-neg-assays,sequence,LR,0.8230519543772947,0.16165492542670704
+hard_pep_cdr3b,only-neg-assays,sequence,RF,0.6372847674584459,0.15015051656973147
