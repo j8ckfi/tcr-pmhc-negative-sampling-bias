@@ -48,11 +48,11 @@
 % ==================== 1. INTRODUCTION ====================
 \section{Introduction}
 
-T-cell receptor (TCR) recognition of peptide-MHC (pMHC) complexes is the molecular event that initiates adaptive immune responses against infected or malignant cells. Accurately predicting which TCRs will recognise a given pMHC is essential for multiple translational applications: identifying neoantigen targets for personalised cancer vaccines, selecting TCR clonotypes for adoptive cell therapy, predicting autoimmune epitope reactivities, and interpreting TCR repertoire sequencing data from clinical cohorts. The problem has been called ``the holy grail of systems immunology,'' and substantial computational effort has been directed toward solving it.
+T-cell receptor (TCR) recognition of peptide-MHC (pMHC) complexes is the molecular event that initiates adaptive immune responses against infected or malignant cells. Accurately predicting which TCRs will recognise a given pMHC is essential for multiple translational applications: identifying neoantigen targets for personalised cancer vaccines, selecting TCR clonotypes for adoptive cell therapy, predicting autoimmune epitope reactivities, and interpreting TCR repertoire sequencing data from clinical cohorts. The problem has been described as ``a holy grail of systems immunology'' (Hudson et al., 2023), and substantial computational effort has been directed toward solving it.
 
-Recent machine learning approaches report encouraging performance. Methods including TITAN, NetTCR-2.0, pMTnet, ERGO-II, and TCR-BERT achieve AUC scores of 0.85--0.95 on standard benchmarks. However, these metrics are almost exclusively reported on peptides present in the training data. When evaluated on held-out peptides---the clinically relevant scenario of encountering a novel neoantigen or pathogen epitope---performance drops precipitously. Independent evaluations consistently find that models achieving AUC $>$ 0.89 on seen epitopes crater to near chance on unseen ones. The predictive power of all approaches remains low on the most challenging zero-shot tasks, and performance on cancer neoantigen prediction specifically---the application most urgently needed---is particularly poor.
+Recent machine learning approaches report encouraging performance. Methods including TITAN [13], NetTCR-2.0 [8], pMTnet [7], ERGO-II [12], and TCR-BERT [14] achieve AUC scores of 0.85--0.95 on standard benchmarks. However, these metrics are almost exclusively reported on peptides present in the training data. When evaluated on held-out peptides---the clinically relevant scenario of encountering a novel neoantigen or pathogen epitope---performance drops precipitously. Independent evaluations consistently find that models achieving AUC $>$ 0.89 on seen epitopes crater to near chance on unseen ones. The predictive power of all approaches remains low on the most challenging zero-shot tasks [18], and performance on cancer neoantigen prediction specifically---the application most urgently needed---is particularly poor.
 
-Two observations in the literature suggest that this generalisation failure may not be solely a modelling problem. First, physics-based methods using classical energy functions outperform ML methods when predicting TCR binding to novel peptides, despite underperforming them on known peptides. This reversal is difficult to explain if both approaches are learning the same underlying biology; it is readily explained if sequence-based models are memorising training-set-specific distributional patterns rather than generalisable binding logic. Second, the source of negative TCRs has been shown to substantially impact model accuracy, with external negatives potentially introducing uncontrolled confounders.
+Two observations in the literature suggest that this generalisation failure may not be solely a modelling problem. First, physics-based methods using classical energy functions outperform ML methods when predicting TCR binding to novel peptides, despite underperforming them on known peptides [20]. This reversal is difficult to explain if both approaches are learning the same underlying biology; it is readily explained if sequence-based models are memorising training-set-specific distributional patterns rather than generalisable binding logic. Second, the source of negative TCRs has been shown to substantially impact model accuracy, with external negatives potentially introducing uncontrolled confounders.
 
 These observations point toward a common cause: the standard practice of generating negative examples. Because experimentally confirmed non-binders are scarce, the field overwhelmingly relies on \textit{random-swap} negatives---pairing a TCR known to bind peptide A with a different peptide B. This assumption is statistically reasonable, but it introduces a subtler problem: random-swap negatives are \textit{distributionally different} from true negatives in ways that are learnable by machine learning models and orthogonal to binding.
 
@@ -63,11 +63,11 @@ Here, we systematically evaluate the impact of negative sampling strategy on TCR
 
 \subsection{Datasets}
 
-\textbf{IMMREP22.} The IMMREP 2022 TCR Specificity benchmark contains 2,445 positive TCR-pMHC pairs spanning 17 peptides, primarily HLA-A*02:01-restricted. The dataset represents a curated consensus from VDJdb and McPAS-TCR, with a held-out true set for independent evaluation. Peptides span viral (GILGFVFTL from influenza, NLVPMVATV from CMV, YLQPRTFLL from SARS-CoV-2), self (GLCTLVAML), and other specificities.
+\textbf{IMMREP22.} The IMMREP 2022 TCR Specificity benchmark contains 2,445 positive TCR-pMHC pairs spanning 17 peptides, primarily HLA-A*02:01-restricted. The dataset represents a curated consensus from VDJdb [1] and McPAS-TCR [17], with a held-out true set for independent evaluation. Peptides span viral (GILGFVFTL from influenza, NLVPMVATV from CMV, YLQPRTFLL from SARS-CoV-2), self (GLCTLVAML), and other specificities.
 
-\textbf{TChard.} The TChard benchmark from Oak Ridge National Laboratory provides pre-defined difficulty splits. We used two split types: \textit{easy} (random cross-validation) and \textit{hard} (peptide + CDR3$\beta$ held out). TChard also provides two negative types: \textit{only-neg-assays} (experimentally confirmed non-binders) and \textit{only-sampled-negs} (random-swap negatives).
+\textbf{TChard.} The TChard benchmark [6] from Grazioli et al. provides pre-defined difficulty splits. We used two split types: \textit{easy} (random cross-validation) and \textit{hard} (peptide + CDR3$\beta$ held out). TChard also provides two negative types: \textit{only-neg-assays} (experimentally confirmed non-binders) and \textit{only-sampled-negs} (random-swap negatives).
 
-\textbf{ITRAP.} The ITRAP benchmark derived from 10x Genomics dextramer experiments contains 13,470 TCR--peptide observations across 4 peptides. Its unique strength is a dual-negative design: \textit{neg\_control} entries are TCRs experimentally confirmed as non-binders via dextramer sorting, while \textit{swapped} entries are computationally generated random-swap negatives.
+\textbf{ITRAP.} The ITRAP benchmark [19] derived from 10x Genomics dextramer experiments contains 13,470 TCR--peptide observations across 4 peptides. Its unique strength is a dual-negative design: \textit{neg\_control} entries are TCRs experimentally confirmed as non-binders via dextramer sorting, while \textit{swapped} entries are computationally generated random-swap negatives.
 
 \subsection{Negative sampling strategies}
 
@@ -119,21 +119,32 @@ Harder negative strategies progressively reduced inflation. Within-cluster negat
 
 \begin{table}[H]
 \centering
-\caption{Core benchmark results on IMMREP22. Inflation = CV AUC $-$ LOPO AUC.}
+\caption{Core benchmark results on IMMREP22. Inflation = CV AUC $-$ LOPO AUC. LR--sequence combinations are omitted because L2-regularised LR underperforms on the $\sim$8,900-dimensional sparse 3-mer representation.}
 \label{tab:core}
 \small
 \begin{tabular}{llllll}
 \toprule
 \textbf{Strategy} & \textbf{Features} & \textbf{Model} & \textbf{CV AUC} & \textbf{LOPO AUC} & \textbf{Inflation} \\
 \midrule
-Random swap     & Biophysical & LR  & 0.723 & 0.479 & +0.244 \\
-Random swap     & Biophysical & RF  & 0.804 & 0.599 & +0.205 \\
-Random swap     & Biophysical & MLP & 0.863 & 0.453 & +0.410 \\
-Random swap     & Sequence    & RF  & 0.822 & 0.605 & +0.217 \\
-Random swap     & Sequence    & MLP & 0.842 & 0.222 & +0.620 \\
-Within cluster  & Biophysical & RF  & 0.730 & 0.599 & +0.131 \\
-Shuffled CDR3   & Biophysical & MLP & 0.426 & 0.499 & $-$0.074 \\
-Shuffled CDR3   & Sequence    & MLP & 1.000 & 1.000 & +0.000 \\
+Random swap      & Biophysical & LR  & 0.723 & 0.479 & +0.244 \\
+Random swap      & Biophysical & RF  & 0.804 & 0.599 & +0.205 \\
+Random swap      & Biophysical & MLP & 0.863 & 0.453 & +0.410 \\
+Random swap      & Sequence    & RF  & 0.822 & 0.605 & +0.217 \\
+Random swap      & Sequence    & MLP & 0.842 & 0.222 & +0.620 \\
+\midrule
+Epi.\ balanced   & Biophysical & LR  & 0.710 & 0.479 & +0.231 \\
+Epi.\ balanced   & Biophysical & RF  & 0.797 & 0.599 & +0.198 \\
+Epi.\ balanced   & Sequence    & RF  & 0.817 & 0.605 & +0.212 \\
+\midrule
+Within cluster   & Biophysical & LR  & 0.475 & 0.479 & $-$0.004 \\
+Within cluster   & Biophysical & RF  & 0.730 & 0.599 & +0.131 \\
+Within cluster   & Sequence    & RF  & 0.783 & 0.605 & +0.178 \\
+\midrule
+Shuffled CDR3    & Biophysical & LR  & 0.384 & 0.479 & $-$0.095 \\
+Shuffled CDR3    & Biophysical & RF  & 0.179 & 0.599 & $-$0.420 \\
+Shuffled CDR3    & Biophysical & MLP & 0.426 & 0.499 & $-$0.074 \\
+Shuffled CDR3    & Sequence    & RF  & 1.000 & 0.605 & +0.395 \\
+Shuffled CDR3    & Sequence    & MLP & 1.000 & 1.000 & +0.000 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -166,9 +177,11 @@ Biophysical distance analysis on ITRAP provided direct evidence: experimental ne
 
 \subsection{Harder negatives reduce but do not eliminate inflation; biophysical features show a crossover advantage}
 
-The difficulty titration revealed a monotonic relationship between negative difficulty and AUC (Figure~\ref{fig:crossover}). For logistic regression, biophysical features outperformed sequence features at all difficulty levels, with the gap widening from +0.026 at Level 1 (trivial) to +0.111 at Level 6 (hard). For random forest, a crossover was observed near Level 3--4, after which sequence features slightly outperformed biophysical.
+The difficulty titration revealed a monotonic relationship between negative difficulty and AUC, with a model-dependent interaction between feature type and difficulty level (Figure~\ref{fig:crossover}). For logistic regression, biophysical features outperformed sequence features at all eight difficulty levels, with the gap \textit{widening} from +0.026 at Level 1 (trivial) to +0.111 at Level 6 (hard). This widening gap indicates that sequence features are more dependent on the distributional shortcuts present in easy negatives: as those shortcuts are removed, sequence performance degrades faster than biophysical performance.
 
-This crossover directly explains the published finding that physics-based methods outperform sequence-based methods on novel peptides: sequence models benefit more from distributional shortcuts in easy negatives; as shortcuts are removed, the intrinsic advantage of biophysical representations emerges.
+For random forest, the pattern was more nuanced. Both feature types started high at Level 1 (biophysical = 0.970, sequence = 0.943), but sequence features maintained higher performance at harder levels (Level 8: sequence = 0.779, biophysical = 0.745), with a crossover near Level 3--4. This likely reflects RF's capacity to exploit higher-dimensional sequence features effectively even under harder negatives, an advantage unavailable to the lower-capacity LR.
+
+The model-dependent crossover is informative: it demonstrates that the relative advantage of biophysical versus sequence features depends on both negative difficulty and model capacity. The LR result---where biophysical features show a clear and widening advantage as shortcuts are removed---is consistent with the published finding that physics-based methods outperform sequence-based methods on novel peptides, where distributional shortcuts are absent by definition.
 
 % --- FIGURE 3 ---
 \begin{figure}[H]
@@ -202,7 +215,7 @@ The inflation pattern replicated across all three independent benchmarks (Figure
 
 \subsection{Experimental negatives recover genuine predictive signal}
 
-The most important result of this study is constructive. Using ITRAP's dual-negative design, we trained RF models on either experimental or random-swap negatives and evaluated via LOPO against experimental ground truth (Table~\ref{tab:cure}; Figure~\ref{fig:cure}A).
+Using ITRAP's dual-negative design, we trained RF models on either experimental (dextramer-sorted) or random-swap negatives and evaluated via LOPO against experimental ground truth (Table~\ref{tab:cure}; Figure~\ref{fig:cure}A).
 
 \begin{table}[H]
 \centering
@@ -223,6 +236,8 @@ IVTDFSVIK  & 0.819 $\pm$ 0.027 & 0.183 $\pm$ 0.024 & +0.636 \\
 \end{table}
 
 Random-swap-trained models scored below chance (AUC $<$ 0.25) on all three peptides when evaluated against experimental negatives, indicating that they discriminate the distributional properties of random-swap negatives rather than any property of non-binding TCRs. Experimental-negative-trained models retained meaningful predictive signal (mean AUC = 0.710), demonstrating that genuine binding-relevant information exists in the data but is accessible only when training negatives reflect biological reality.
+
+Sequence features confirmed this pattern: RF models trained on experimental negatives achieved a mean LOPO AUC of 0.722 (ELAGIGILTV = 0.747, GILGFVFTL = 0.587, IVTDFSVIK = 0.833) versus 0.157 for swap-trained models (a 4.6-fold improvement). The consistency across feature representations demonstrates that the benefit of experimental negatives is independent of how TCR sequences are encoded.
 
 % --- FIGURE 5 ---
 \begin{figure}[H]
@@ -249,7 +264,7 @@ The MLP showed \textit{more} inflation than LR or RF (+0.410 versus +0.205), con
 
 \subsection{Experimental negatives as the path forward}
 
-The ITRAP results (Table~\ref{tab:cure}) demonstrate that genuine predictive signal is recoverable when training negatives reflect biological reality. The 3.9-fold improvement in mean LOPO AUC (0.710 versus 0.184) represents the difference between a useless classifier and a modestly useful one. We recommend that the field:
+The most important result of this study is constructive rather than critical. The ITRAP results (Table~\ref{tab:cure}) demonstrate that genuine predictive signal is recoverable when training negatives reflect biological reality. The 3.9-fold improvement in mean LOPO AUC (0.710 versus 0.184) represents the difference between a useless classifier and a modestly useful one. We recommend that the field:
 
 \begin{enumerate}[noitemsep]
     \item \textbf{Generate experimental negatives} via dextramer or tetramer sorting wherever possible.
@@ -269,7 +284,7 @@ Our findings have two immediate implications. For method developers, new models 
 % ==================== REFERENCES ====================
 \section*{Data and Code Availability}
 
-All code, data processing scripts, and analysis notebooks are available at \url{https://github.com/jacklarge/tcr-pmhc-negative-sampling}.
+All code, data processing scripts, and analysis notebooks are available at [repository URL to be added upon publication].
 
 \section*{References}
 
@@ -286,9 +301,15 @@ All code, data processing scripts, and analysis notebooks are available at \url{
 \item Montemurro, A., et al. (2022). IMMREP22: T cell receptor specificity prediction benchmark. \textit{ImmunoInformatics}, 9, 100028.
 \item Peng, Y., et al. (2024). Characterizing the interaction conundrum: assessment of the IMMREP23 TCR-epitope specificity challenge. \textit{bioRxiv}, 2024.06.18.599265.
 \item Riley, T.P., et al. (2023). Structure-based prediction of TCR-pMHC binding. \textit{Frontiers in Immunology}, 14, 1120481.
-\item Springer, I., et al. (2021). Prediction of specific TCR-peptide binding from large dictionaries. \textit{Frontiers in Immunology}, 11, 568372.
+\item Springer, I., Tickotsky, N., \& Louzoun, Y. (2021). Contribution of T Cell Receptor Alpha and Beta CDR3, MHC Typing, V and J Genes to Peptide Binding Prediction. \textit{Frontiers in Immunology}, 12, 664514.
 \item Weber, A., et al. (2021). TITAN: T-cell receptor specificity prediction with bimodal attention networks. \textit{Bioinformatics}, 37, i237--i244.
-\item Wu, K., et al. (2024). TCR-BERT: learning the grammar of T-cell receptors. \textit{Nature Communications}, 15, 3112.
+\item Wu, K., et al. (2024). TCR-BERT: learning the grammar of T-cell receptors for flexible antigen-binding analyses. \textit{Proceedings of Machine Learning Research}, 240, 194--229.
+\item Hudson, W.H., et al. (2023). Can we predict T cell specificity with digital biology and machine learning? \textit{Nature Reviews Immunology}, 23, 511--521.
+\item Tickotsky, N., et al. (2017). McPAS-TCR: a manually curated catalogue of pathology-associated T cell receptor sequences. \textit{Bioinformatics}, 33(18), 2924--2929.
+\item Peng, L., et al. (2024). TCR-H: machine learning prediction of T-cell receptor binding with hard negative mining. \textit{bioRxiv}, 2024.06.04.597262.
+\item Zhang, W., et al. (2024). TCRcube: comprehensive T-cell receptor binding prediction with multi-task learning. \textit{bioRxiv}, 2024.08.05.606453.
+\item Povlsen, H.R., et al. (2023). Improved T cell receptor antigen pairing through data-driven filtering of sequencing information from single cells. \textit{eLife}, 12, e81810.
+\item Culka, M., et al. (2025). Predicting specificity of TCR-pMHC interactions using machine learning and biophysical models. \textit{bioRxiv}, 2025.04.04.647165.
 \end{enumerate}
 
 \end{document}

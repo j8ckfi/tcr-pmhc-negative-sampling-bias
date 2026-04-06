@@ -5,3 +5,14 @@ data/
 *.egg-info/
 .DS_Store
 *.tmp
+
+# LaTeX build artifacts
+manuscript.aux
+manuscript.log
+manuscript.out
+
+# Claude/OMC session state
+.omc/
+CLAUDE.md
+CODE_REVIEW.md
+manuscript.md
