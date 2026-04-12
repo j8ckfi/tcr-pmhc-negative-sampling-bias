@@ -1,12 +1,6 @@
-# Random-Swap Negative Sampling Inflates Reported Performance in TCR-pMHC Specificity Prediction
+Peptide-MHC binding prediction is solved (NetMHCPan). But the next question - does a specific T-cell receptor actually recognize a given peptide-MHC complex? - is what the field calls "a holy grail of systems immunology" (Hudson et al., 2023), and it's still mostly broken.
 
-**Jack Large** | Front Range Community College | jlarge6@student.cccs.edu
-
-## The Problem
-
-Peptide-MHC binding prediction is solved (NetMHCPan). But the next question -- does a specific T-cell receptor actually recognize a given peptide-MHC complex? -- is what the field calls "a holy grail of systems immunology" (Hudson et al., 2023), and it's still broken.
-
-ML methods report AUC 0.85-0.95 on standard benchmarks but crater on unseen peptides. We show this gap is largely a **measurement artifact** caused by the near-universal practice of generating negative training examples via random TCR-peptide swaps.
+ML methods report AUC 0.85-0.95 on standard benchmarks but crater on unseen peptides. This gap is largely a measurement artifact caused by the near-universal practice of generating negative training examples via random TCR-peptide swaps.
 
 ## Key Findings
 
@@ -72,21 +66,4 @@ python src/dl_baseline_test.py
 
 # Generate figures
 python src/generate_paper_figures.py
-```
-
-## Recommendations for the Field
-
-1. **Generate experimental negatives** via dextramer or tetramer sorting wherever possible
-2. **Evaluate using LOPO** to simulate encountering novel peptides
-3. **Report negative strategy explicitly** in all publications
-4. **Use difficulty-aware sampling** when experimental negatives are unavailable
-
-## Citation
-
-If you use this work, please cite:
-
-```
-Large, J. (2026). Random-swap negative sampling inflates reported performance
-in TCR-pMHC specificity prediction: quantifying the bias and demonstrating
-a concrete alternative. Preprint.
 ```
